@@ -17,7 +17,6 @@ void change_dir(char **tokens);
 int main(int argc, char *argv[])
 {
    char *buf = malloc(sizeof(char) * MAX_BUFFER);
-   char *line = malloc(sizeof(char) * MAX_BUFFER);
    char *tokens[MAX_ARGS] = { NULL };
 
    char curr_dir[100];
@@ -28,11 +27,13 @@ int main(int argc, char *argv[])
    void (*functions[])(char **tokens) = {clear, quit, change_dir};
    int size_intc = sizeof(intern_com) / sizeof(intern_com[0]);
 
+   pid_t pid;
+   int status;
+
    while (!feof(stdin))
    {
       fputs(curr_dir, stdout);
       fgets(buf, MAX_BUFFER, stdin);
-      line = strdup(buf);
       
       char *token = strtok(buf, SEP);
       int i = 0;
@@ -48,7 +49,23 @@ int main(int argc, char *argv[])
       if (index != -1)
          (*functions[index])(tokens);
       else
-         system(line);
+      {
+         // got help for these from lab4D and lab3 @ ca216.computing.dcu.ie
+         pid = fork();
+         if (pid == -1)  // fork failed
+         {
+            printf("Fork failed: exiting.");
+            exit(1);
+         }
+         else if (pid == 0)  //fork succeeded, this is the child process
+         {
+            execvp(tokens[0], tokens);
+         }
+         else  // this is the parent process
+         {
+            pid = wait(&status);  // waits for child process to complete
+         }
+      }
 
       for (int i = 0; tokens[i] != NULL; ++i)
          tokens[i] = NULL;
@@ -59,7 +76,6 @@ int main(int argc, char *argv[])
    }
 
    free(buf);
-   free(line);
    return 0;
 }
 
