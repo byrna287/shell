@@ -3,10 +3,49 @@
 #include <stdlib.h>
 #include <string.h>
 
+int io_in(char **tokens)
+{
+   for (int i = 0; tokens[i] != NULL; ++i)
+   {
+      if (strcmp(tokens[i], "<") == 0)
+      {
+         return i + 1;
+      }
+   }
+   return -1;
+}
+
 int main(int argc, char *argv[])
 {
 
-   char *tokens[64] = { NULL };
+   /*char *tokens[] = {"progname", "arg1", "arg2", "<", "filename", NULL, NULL};
+   int ind = io_in(tokens);
+   if (access(tokens[ind], F_OK) == 0)
+   {
+      freopen(tokens[ind], "r", stdin);
+
+   }*/
+
+   int num = 0, num2 = 4, num3 = 5;
+
+
+   if (num != -1)
+      printf("first if\n");
+   else if (num2 != -1)
+      printf("second if\n");
+   else if (num3 != -1)
+      printf("third if\n");
+
+
+
+   // TESTING FILES
+   /*printf("Printing args...\n");
+   for (int i = 1; i < argc; ++i)
+      printf("This is arg %d: %s\n", i, argv[i]);
+   printf("Finished!\n");*/
+
+   // TESTING ONLY ENTER PRESSED
+   /*char *tokens[64] = { NULL };
    char buf[100];
    fgets(buf, 1024, stdin);
 
@@ -19,13 +58,9 @@ int main(int argc, char *argv[])
       ++i;
    }
    for (int i = 0; i < 10; ++i)
-      printf("%d %s\n", i, tokens[i]);
+      printf("%d %s\n", i, tokens[i]);*/
 
-   /*printf("Executing...\n");
-   printf("Printing arg1:\n");
-   printf("%s\n", argv[1]);
-   printf("Finished!\n");*/
-
+   // TESTING FORK AND EXEC
    /*pid_t pid;
    int status;
    char* tokens[] = {"la", "-al", NULL};

@@ -13,6 +13,7 @@ int findIndex(char *command, char *intern_com[], int size_intc);
 void clear(char **tokens);
 void quit(char **tokens);
 void change_dir(char **tokens);
+int redir_io(char **tokens, char *io_dir);
 
 int main(int argc, char *argv[])
 {
@@ -50,12 +51,14 @@ int main(int argc, char *argv[])
 
       int index = findIndex(tokens[0], intern_com, size_intc);
 
+      // if the input is an internal command pass it to the array of functions
       if (index != -1)
          (*functions[index])(tokens);
       else
       {
-         // got help for these from lab4D and lab3 @ ca216.computing.dcu.ie
+         // got help for these from labs @ ca216.computing.dcu.ie
          pid = fork();
+
          if (pid == -1)  // fork failed
          {
             printf("Fork failed: exiting.");
@@ -63,6 +66,38 @@ int main(int argc, char *argv[])
          }
          else if (pid == 0)  //fork succeeded, this is the child process
          {
+            // check if input is being redirected
+            int input = redir_io(tokens, "<");
+            if (input != -1)
+            {
+               if (access(tokens[input], F_OK) == 0)  // if the file exists
+                  freopen(tokens[input], "r", stdin);  // open file for reading
+            }
+            // check if output is being redirected
+            int output = redir_io(tokens, ">");
+            if (output != -1)
+            {
+               freopen(tokens[output], "w", stdout);  // open file for writing
+            }
+            // check if output is being redirected and appended
+            int app_output = redir_io(tokens, ">>");
+            if (app_output != -1)
+            {
+               freopen(tokens[app_output], "a", stdout);  // open file for appending
+            }
+
+            // if there is redirection, change the arguments after redirection to null (including redirection arg)
+            int j = 0;
+            if (input != -1)
+               j = input - 1;
+            else if (output != -1)
+               j = output - 1;
+            else if (app_output != -1)
+               j = app_output - 1;
+            if (j != 0)
+               for (int i = j; tokens[i] != NULL; ++i)
+                  tokens[i] = NULL;
+
             int rcode = execvp(tokens[0], tokens);
             if (rcode == -1)
                printf("command not found: %s\n", tokens[0]);
@@ -74,6 +109,7 @@ int main(int argc, char *argv[])
          }
       }
 
+      // change the input array back to null to read the next line
       for (int i = 0; tokens[i] != NULL; ++i)
          tokens[i] = NULL;
 
@@ -84,6 +120,16 @@ int main(int argc, char *argv[])
 
    free(buf);
    return 0;
+}
+
+int redir_io(char **tokens, char *io_dir)
+{
+   for (int i = 0; tokens[i] != NULL; ++i)
+   {
+      if (strcmp(tokens[i], io_dir) == 0)
+         return i + 1;
+   }
+   return -1;
 }
 
 int findIndex(char *command, char *intern_com[], int size_intc)

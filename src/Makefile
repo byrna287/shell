@@ -6,4 +6,9 @@ myshell: myshell.c
 test: test.c
 	gcc -o test test.c
 	mv test ../bin/test
-	../bin/test
+	../bin/test first second third
+
+test2: test2.c
+	gcc -o test2 test2.c
+	mv test2 ../bin/test2
+	../bin/test2 a1 a2
