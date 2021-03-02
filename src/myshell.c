@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
    {
       fputs(curr_dir, stdout);
       fgets(buf, MAX_BUFFER, stdin);
-      
+
       char *token = strtok(buf, SEP);
       int i = 0;
       while (token != NULL)
@@ -43,6 +43,10 @@ int main(int argc, char *argv[])
          token = strtok(NULL, SEP);
          ++i;
       }
+
+      // if only enter is pressed (blank line) go back to top of while loop
+      if (tokens[0] == NULL)
+         continue;
 
       int index = findIndex(tokens[0], intern_com, size_intc);
 
@@ -59,7 +63,10 @@ int main(int argc, char *argv[])
          }
          else if (pid == 0)  //fork succeeded, this is the child process
          {
-            execvp(tokens[0], tokens);
+            int rcode = execvp(tokens[0], tokens);
+            if (rcode == -1)
+               printf("command not found: %s\n", tokens[0]);
+            _exit(3);  // exits the child process if execvp fails i.e if someone spells a command wrong
          }
          else  // this is the parent process
          {

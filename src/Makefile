@@ -6,3 +6,4 @@ myshell: myshell.c
 test: test.c
 	gcc -o test test.c
 	mv test ../bin/test
+	../bin/test
