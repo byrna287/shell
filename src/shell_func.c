@@ -27,7 +27,7 @@ void quit(char **tokens)
 
 void change_dir(char **tokens)
 {
-   char buf[100];
+   char *buf = malloc(sizeof(char) * 100);
    if (tokens[1] == NULL)
    {
       printf("%s\n", getcwd(buf, 100));
@@ -36,11 +36,12 @@ void change_dir(char **tokens)
    {
       chdir(tokens[1]);
       getcwd(buf, 100);
-      char *e_var = malloc(strlen("PWD=") + strlen(buf) + 1);
+      char *e_var = malloc(strlen("PWD=") + 101);
       strcpy(e_var, "PWD=");
       strcat(e_var, buf);
       putenv(e_var);
    }
+   free(buf);
 }
 
 int redir_io(char **tokens, char *io_dir)

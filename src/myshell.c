@@ -5,9 +5,9 @@
 
 #include "shell_func.h"
 
-#define MAX_BUFFER 1024                // max line length that can be read
-#define MAX_ARGS 64                    // max number of arguments i.e. words in input
-#define SEP " \t\n"                    // what to split on
+#define MAX_BUFFER 1024            // max line length that can be read
+#define MAX_ARGS 64                // max number of arguments i.e. words in input
+#define SEP " \t\n"                // what to split on
 
 extern char **environ;
 
@@ -19,43 +19,47 @@ int redir_io(char **tokens, char *io_dir);
 
 int main(int argc, char *argv[])
 {
-   char *buf = malloc(sizeof(char) * MAX_BUFFER);
-   char *tokens[MAX_ARGS] = { NULL };
+   char *buf = malloc(sizeof(char) * MAX_BUFFER);       // buffer to read input
+   char **tokens = malloc(sizeof(char *) * MAX_ARGS);   // array to store input
+   for (int i = 0; i < MAX_ARGS; ++i)                   // initialising array to null
+      tokens[i] = NULL;
 
-   char curr_dir[100];
-   getcwd(curr_dir, 100);
-   strcat(curr_dir, " >> ");
+   char *dir_prompt = malloc(sizeof(char) * 100);       // get current directory to use as prompt
+   getcwd(dir_prompt, 100);
+   strcat(dir_prompt, " >> ");
 
-   char *intern_com[] = {"clr", "quit", "cd"};
-   void (*functions[])(char **tokens) = {clear, quit, change_dir};
-   int size_intc = sizeof(intern_com) / sizeof(intern_com[0]);
+   char *intern_com[] = {"clr", "quit", "cd"};                        // array of internal command strings
+   void (*functions[])(char **tokens) = {clear, quit, change_dir};    // array of functions to complete internal commands
+   int size_intc = sizeof(intern_com) / sizeof(intern_com[0]);        // size of array of internal commands
 
    pid_t pid;
    int status;
 
    while (!feof(stdin))
    {
-      fputs(curr_dir, stdout);
-      fgets(buf, MAX_BUFFER, stdin);
+      fputs(dir_prompt, stdout);         // print prompt
+      fgets(buf, MAX_BUFFER, stdin);     // read input
 
-      char *token = strtok(buf, SEP);
+      char *token = strtok(buf, SEP);    // split input on whitespace
       int i = 0;
-      while (token != NULL)
+      while (token != NULL)              // add input to array
       {
          tokens[i] = token;
          token = strtok(NULL, SEP);
          ++i;
       }
 
-      // if only enter is pressed (blank line) go back to top of while loop
+      // if only enter is pressed (blank line) go to next line (back to top of while loop)
       if (tokens[0] == NULL)
          continue;
 
-      int index = findIndex(tokens[0], intern_com, size_intc);
+      // check if the input is an internal command and find the function's index if it is
+      int ind_f = findIndex(tokens[0], intern_com, size_intc);
 
       // if the input is an internal command pass it to the array of functions
-      if (index != -1)
-         (*functions[index])(tokens);
+      if (ind_f != -1)
+         (*functions[ind_f])(tokens);
+      // if it isn't an internal command, fork and use exec to complete command
       else
       {
          // got help for these from labs @ ca216.computing.dcu.ie
@@ -115,11 +119,15 @@ int main(int argc, char *argv[])
       for (int i = 0; tokens[i] != NULL; ++i)
          tokens[i] = NULL;
 
-      getcwd(curr_dir, 100);
-      strcat(curr_dir, " >> ");
+      // get current directory for prompt
+      getcwd(dir_prompt, 100);
+      strcat(dir_prompt, " >> ");
 
    }
 
+   // free memory dynamically allocated
    free(buf);
+   free(tokens);
+   free(dir_prompt);
    return 0;
 }
