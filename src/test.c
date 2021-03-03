@@ -26,7 +26,12 @@ int main(int argc, char *argv[])
 
    }*/
 
-   int num = 0, num2 = 4, num3 = 5;
+   // TESTING FILES
+   printf("Printing args...\n");
+   for (int i = 0; i < argc; ++i)
+      printf("This is arg %d: %s\n", i, argv[i]);
+   printf("Finished!\n");
+   /*int num = 0, num2 = 4, num3 = 5;
 
 
    if (num != -1)
@@ -34,15 +39,8 @@ int main(int argc, char *argv[])
    else if (num2 != -1)
       printf("second if\n");
    else if (num3 != -1)
-      printf("third if\n");
+      printf("third if\n");*/
 
-
-
-   // TESTING FILES
-   /*printf("Printing args...\n");
-   for (int i = 1; i < argc; ++i)
-      printf("This is arg %d: %s\n", i, argv[i]);
-   printf("Finished!\n");*/
 
    // TESTING ONLY ENTER PRESSED
    /*char *tokens[64] = { NULL };

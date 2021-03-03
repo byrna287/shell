@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 {
    char *buf = malloc(sizeof(char) * MAX_BUFFER);       // buffer to read input
    char **tokens = malloc(sizeof(char *) * MAX_ARGS);   // array to store input
-   for (int i = 0; i < MAX_ARGS; ++i)                   // initialising array to null
+   for (int i = 0; i < MAX_ARGS; ++i)                   // initialise array to null
       tokens[i] = NULL;
 
    char *dir_prompt = malloc(sizeof(char) * 100);       // get current directory to use as prompt
@@ -35,14 +35,22 @@ int main(int argc, char *argv[])
    pid_t pid;
    int status;
 
+   // if a file is given as command line argument, read commands from there instead
+   if (argc == 2)
+   {
+      if (access(argv[1], F_OK) == 0)
+         freopen(argv[1], "r", stdin);
+   }
+
    while (!feof(stdin))
    {
-      fputs(dir_prompt, stdout);         // print prompt
-      fgets(buf, MAX_BUFFER, stdin);     // read input
+      if (argc < 2)                         // if not reading commands from a file
+         fputs(dir_prompt, stdout);         // print prompt
+      fgets(buf, MAX_BUFFER, stdin);        // read input
 
-      char *token = strtok(buf, SEP);    // split input on whitespace
+      char *token = strtok(buf, SEP);       // split input on whitespace
       int i = 0;
-      while (token != NULL)              // add input to array
+      while (token != NULL)                 // add input to array
       {
          tokens[i] = token;
          token = strtok(NULL, SEP);
@@ -76,7 +84,7 @@ int main(int argc, char *argv[])
             int input = redir_io(tokens, "<");
             if (input != -1)
             {
-               if (access(tokens[input], F_OK) == 0)  // if the file exists
+               if (access(tokens[input], F_OK) == 0)   // if the file exists
                   freopen(tokens[input], "r", stdin);  // open file for reading
             }
             // check if output is being redirected
@@ -129,5 +137,5 @@ int main(int argc, char *argv[])
    free(buf);
    free(tokens);
    free(dir_prompt);
-   return 0;
+   return 0;   // returning also closes all open files
 }
