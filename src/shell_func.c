@@ -5,6 +5,10 @@
 
 #include "shell_func.h"
 
+/*
+*  functions used in myshell.c
+*/
+
 int findIndex(char *command, char *intern_com[], int size_intc)
 {
    for (int i = 0; i < size_intc; ++i)
@@ -52,4 +56,21 @@ int redir_io(char **tokens, char *io_dir)
          return i + 1;
    }
    return -1;
+}
+
+void echo(char **tokens)
+{
+   for (int i = 1; tokens[i] != NULL; ++i)
+   {
+      printf("%s ", tokens[i]);
+   }
+   printf("\n");
+}
+
+void pause_enter(char **tokens)
+{
+   char *buf = malloc(sizeof(char) * 1024);
+   printf("Press Enter to continue...\n");
+   fgets(buf, 1024, stdin);
+   free(buf);
 }

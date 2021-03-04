@@ -16,6 +16,8 @@ void clear(char **tokens);
 void quit(char **tokens);
 void change_dir(char **tokens);
 int redir_io(char **tokens, char *io_dir);
+void echo(char **tokens);
+void pause_enter(char **tokens);
 
 int main(int argc, char *argv[])
 {
@@ -28,8 +30,8 @@ int main(int argc, char *argv[])
    getcwd(dir_prompt, 100);
    strcat(dir_prompt, " >> ");
 
-   char *intern_com[] = {"clr", "quit", "cd"};                        // array of internal command strings
-   void (*functions[])(char **tokens) = {clear, quit, change_dir};    // array of functions to complete internal commands
+   char *intern_com[] = {"clr", "quit", "cd", "echo", "pause"};                        // array of internal command strings
+   void (*functions[])(char **tokens) = {clear, quit, change_dir, echo, pause_enter};    // array of functions to complete internal commands
    int size_intc = sizeof(intern_com) / sizeof(intern_com[0]);        // size of array of internal commands
 
    pid_t pid;
