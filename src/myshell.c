@@ -11,13 +11,16 @@
 
 extern char **environ;
 
-int findIndex(char *command, char *intern_com[], int size_intc);
+int find_index(char *command, char *intern_com[], int size_intc);
+int redir_io(char **tokens, char *io_dir);
+int bg_exec(char **tokens);
+// internal command functions:
 void clear(char **tokens);
 void quit(char **tokens);
 void change_dir(char **tokens);
-int redir_io(char **tokens, char *io_dir);
 void echo(char **tokens);
 void pause_enter(char **tokens);
+void help(char **tokens);
 
 int main(int argc, char *argv[])
 {
@@ -30,8 +33,8 @@ int main(int argc, char *argv[])
    getcwd(dir_prompt, 100);
    strcat(dir_prompt, " >> ");
 
-   char *intern_com[] = {"clr", "quit", "cd", "echo", "pause"};                        // array of internal command strings
-   void (*functions[])(char **tokens) = {clear, quit, change_dir, echo, pause_enter};    // array of functions to complete internal commands
+   char *intern_com[] = {"clr", "quit", "cd", "echo", "pause", "help"};                        // array of internal command strings
+   void (*functions[])(char **tokens) = {clear, quit, change_dir, echo, pause_enter, help};    // array of functions to complete internal commands
    int size_intc = sizeof(intern_com) / sizeof(intern_com[0]);        // size of array of internal commands
 
    pid_t pid;
@@ -64,14 +67,20 @@ int main(int argc, char *argv[])
          continue;
 
       // check if the input is an internal command and find the function's index if it is
-      int ind_f = findIndex(tokens[0], intern_com, size_intc);
+      int ind_f = find_index(tokens[0], intern_com, size_intc);
 
-      // if the input is an internal command pass it to the array of functions
+      // internal command: pass to array of functions
       if (ind_f != -1)
          (*functions[ind_f])(tokens);
-      // if it isn't an internal command, fork and use exec to complete command
+      // external command: fork and use exec to complete
       else
       {
+         int bg;
+         if (bg_exec(tokens) == -1)  // check for &
+            bg = 0; // no & so exec in fg (wait)
+         else
+            bg = 1; // & so exec in bg
+
          // got help for these from labs @ ca216.computing.dcu.ie
          pid = fork();
 
@@ -121,7 +130,9 @@ int main(int argc, char *argv[])
          }
          else  // this is the parent process
          {
-            pid = wait(&status);  // waits for child process to complete
+            if (bg == 0)  // wait, run child process in foreground
+               waitpid(pid, &status, WUNTRACED); // waits for child process to complete
+            //else run child process in background
          }
       }
 
