@@ -9,8 +9,6 @@
 #define MAX_ARGS 64                // max number of arguments i.e. words in input
 #define SEP " \t\n"                // what to split on
 
-extern char **environ;
-
 int find_index(char *command, char *intern_com[], int size_intc);
 int redir_io(char **tokens, char *io_dir);
 int bg_exec(char **tokens);
@@ -21,6 +19,8 @@ void change_dir(char **tokens);
 void echo(char **tokens);
 void pause_enter(char **tokens);
 void help(char **tokens);
+void dir(char **tokens);
+void envir(char **tokens);
 
 int main(int argc, char *argv[])
 {
@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
    getcwd(dir_prompt, 100);
    strcat(dir_prompt, " >> ");
 
-   char *intern_com[] = {"clr", "quit", "cd", "echo", "pause", "help"};                        // array of internal command strings
-   void (*functions[])(char **tokens) = {clear, quit, change_dir, echo, pause_enter, help};    // array of functions to complete internal commands
+   char *intern_com[] = {"clr", "quit", "cd", "echo", "pause", "help", "dir", "environ"};                        // array of internal command strings
+   void (*functions[])(char **tokens) = {clear, quit, change_dir, echo, pause_enter, help, dir, envir};      // array of functions to complete internal commands
    int size_intc = sizeof(intern_com) / sizeof(intern_com[0]);        // size of array of internal commands
 
    pid_t pid;

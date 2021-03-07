@@ -12,3 +12,5 @@ void change_dir(char **tokens);
 void echo(char **tokens);
 void pause_enter(char **tokens);
 void help(char **tokens);
+void dir(char **tokens);
+void envir(char **tokens);

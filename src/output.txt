@@ -1,13 +1,6 @@
-total 48
-drwxr-xr-x  9 ailbhebyrne  staff   288  2 Mar 15:09 .
-drwxr-xr-x  7 ailbhebyrne  staff   224 28 Feb 13:53 ..
--rw-r--r--  1 ailbhebyrne  staff     0 28 Feb 13:53 .gitkeep
--rw-r--r--  1 ailbhebyrne  staff   256  2 Mar 14:35 Makefile
--rw-r--r--  1 ailbhebyrne  staff     4  2 Mar 13:29 input.txt
--rw-r--r--@ 1 ailbhebyrne  staff  4392  2 Mar 15:09 myshell.c
--rw-r--r--  1 ailbhebyrne  staff     0  2 Mar 15:09 output.txt
--rw-r--r--@ 1 ailbhebyrne  staff  1770  2 Mar 14:57 test.c
--rw-r--r--  1 ailbhebyrne  staff   236  2 Mar 15:03 test2.c
-This is arg 1: a1
-This is arg 2: a2
-Coming from input: 987
+this
+is
+the
+manual
+file
+

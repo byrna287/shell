@@ -29,6 +29,17 @@ int redir_io(char **tokens, char *io_dir)
    return -1;
 }
 
+int bg_exec(char **tokens)
+{
+   for (int i = 0; tokens[i] != NULL; ++i)
+      if (strcmp(tokens[i], "&") == 0)
+      {
+         tokens[i] = NULL;
+         return 1;
+      }
+   return -1;
+}
+
 // internal command functions:
 
 void clear(char **tokens)
@@ -83,11 +94,31 @@ void change_dir(char **tokens)
 
 void echo(char **tokens)
 {
+   // check if output is being redirected
+   int output = redir_io(tokens, ">");
+   if (output != -1)
+      freopen(tokens[output], "w", stdout);  // open file for writing
+      
+   // check if output is being redirected and appended
+   int app_output = redir_io(tokens, ">>");
+   if (app_output != -1)
+      freopen(tokens[app_output], "a", stdout);  // open file for appending
+
+   // remove redirection args if output is being redirected
+   int j = 0;
+   if (output != -1)
+      j = output - 1;
+   else if (app_output != -1)
+      j = app_output - 1;
+   if (j != 0)
+      for (int i = j; tokens[i] != NULL; ++i)
+         tokens[i] = NULL;
+
    for (int i = 1; tokens[i] != NULL; ++i)
-   {
       printf("%s ", tokens[i]);
-   }
    printf("\n");
+
+   freopen("/dev/tty", "w", stdout);   // from stack overflow to resume stdout
 }
 
 void pause_enter(char **tokens)
@@ -102,15 +133,6 @@ void help(char **tokens)
 {
    pid_t pid;
    int status;
-   tokens[0] = "more";
-
-   // find readme file
-   if (access("readme", F_OK) == 0)                  // manual in current directory
-      tokens[1] = "readme";
-   else if (access("../manual/readme", F_OK) == 0)   // manual in parent and then manual directory
-      tokens[1] = "../manual/readme";
-   else if (access("manual/readme", F_OK) == 0)      // manual in manual directory
-      tokens[1] = "manual/readme";
 
    pid = fork();
    if (pid == -1)  // fork failed
@@ -120,11 +142,31 @@ void help(char **tokens)
    }
    else if (pid == 0)  //fork succeeded, this is the child process
    {
-      if (tokens[1] == NULL)  // couldn't find readme file, not in directory of the shell
+      // check if output is being redirected
+      int output = redir_io(tokens, ">");
+      if (output != -1)
+         freopen(tokens[output], "w", stdout);  // open file for writing
+      
+      // check if output is being redirected and appended
+      int app_output = redir_io(tokens, ">>");
+      if (app_output != -1)
+         freopen(tokens[app_output], "a", stdout);  // open file for appending
+
+      tokens[0] = "more";
+      // find readme file
+      if (access("readme", F_OK) == 0)                  // manual in current directory
+         tokens[1] = "readme";
+      else if (access("../manual/readme", F_OK) == 0)   // manual in parent and then manual directory
+         tokens[1] = "../manual/readme";
+      else if (access("manual/readme", F_OK) == 0)      // manual in manual directory
+         tokens[1] = "manual/readme";
+      else
       {
-         printf("error: outside project, readme file not found\n");  // print an error message
+         printf("error: readme file not found\n");  // print an error message if can't find readme
          _exit(3);
       }
+      tokens[2] = NULL;
+
       int rcode = execvp(tokens[0], tokens);
       if (rcode == -1)
          printf("error: command failed");
@@ -136,13 +178,62 @@ void help(char **tokens)
    }
 }
 
-int bg_exec(char **tokens)
+void dir(char **tokens)
 {
-   for (int i = 0; tokens[i] != NULL; ++i)
-      if (strcmp(tokens[i], "&") == 0)
-      {
-         tokens[i] = NULL;
-         return 1;
-      }
-   return -1;
+   pid_t pid;
+   int status;
+
+   pid = fork();
+   if (pid == -1)  // fork failed
+   {
+      printf("Fork failed: exiting.");
+      exit(1);
+   }
+   else if (pid == 0)  //fork succeeded, this is the child process
+   {
+      // check if output is being redirected
+      int output = redir_io(tokens, ">");
+      if (output != -1)
+         freopen(tokens[output], "w", stdout);  // open file for writing
+      
+      // check if output is being redirected and appended
+      int app_output = redir_io(tokens, ">>");
+      if (app_output != -1)
+         freopen(tokens[app_output], "a", stdout);  // open file for appending
+
+      tokens[2] = tokens[1];  // make directory the third arg
+      tokens[0] = "ls";
+      tokens[1] = "-al";
+      tokens[3] = NULL;
+
+      int rcode = execvp(tokens[0], tokens);
+      if (rcode == -1)
+         printf("error: command failed");
+      _exit(3);
+   }
+   else  // this is the parent process
+   {
+      pid = wait(&status);  // waits for child process to complete
+   }
+}
+
+void envir(char **tokens)
+{
+   extern char **environ;
+
+   // check if output is being redirected
+   int output = redir_io(tokens, ">");
+   if (output != -1)
+      freopen(tokens[output], "w", stdout);  // open file for writing
+      
+   // check if output is being redirected and appended
+   int app_output = redir_io(tokens, ">>");
+   if (app_output != -1)
+      freopen(tokens[app_output], "a", stdout);  // open file for appending
+
+   for (int i = 0; environ[i] != NULL; ++i)
+      printf("%s\n", environ[i]);
+
+   freopen("/dev/tty", "w", stdout);   // from stack overflow to resume stdout
+
 }
