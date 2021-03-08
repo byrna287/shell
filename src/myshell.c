@@ -1,6 +1,6 @@
 // reference: got help from the labs @ ca216.computing.dcu.ie
 
-// still need to bg execution for internal commands?, comments, explain functions, 
+// still need to bg execution for internal commands?, explain functions, 
 // make sure online stuff referenced, user manual, makefile, required docs present
 
 #include <stdio.h>
@@ -14,19 +14,19 @@
 #define MAX_ARGS 64                // max number of arguments i.e. words in input
 #define SEP " \t\n"                // split input on whitespace
 
-int find_index(char *command, char *intern_com[], int size_intc);
-int redir_io(char **tokens, char *io_dir);
-int bg_exec(char **tokens);
-void set_shell_env(void);
+int find_index(char *command, char *intern_com[], int size_intc);  // find index of function array that corresponds to internal command
+int redir_io(char **tokens, char *io_dir);   // check if input/output is being redirected
+int bg_exec(char **tokens);                  // check if command should be executed in the background
+void set_shell_env(void);                    // set the shell environment variable to the full path of the shell executable
 // internal command functions:
-void clear(char **tokens);
-void quit(char **tokens);
-void change_dir(char **tokens);
-void echo(char **tokens);
-void pause_enter(char **tokens);
-void help(char **tokens);
-void dir(char **tokens);
-void envir(char **tokens);
+void clear(char **tokens);            // clear the screen
+void quit(char **tokens);             // exit the shell
+void change_dir(char **tokens);       // change directory (and change pwd environment variable)
+void echo(char **tokens);             // print arguments on next line
+void pause_enter(char **tokens);      // pause the shell until enter is pressed
+void help(char **tokens);             // display the user manual
+void dir(char **tokens);              // list contents of directory
+void envir(char **tokens);            // print the environment variables
 
 int main(int argc, char *argv[])
 {
@@ -81,11 +81,7 @@ int main(int argc, char *argv[])
       else
       {
          // check if command to be executed in background or foreground
-         int bg;
-         if (bg_exec(tokens) == -1)
-            bg = 0; // no & so exec in fg (wait)
-         else
-            bg = 1; // & so exec in bg
+         int bg = bg_exec(tokens); // returns 1 if exec in bg, -1 if exec in fg (wait)
 
          pid = fork();
 
@@ -133,8 +129,8 @@ int main(int argc, char *argv[])
          }
          else  // this is the parent process
          {
-            if (bg == 0)  // wait, run child process in foreground
-               waitpid(pid, &status, WUNTRACED); // waits for child process to complete
+            if (bg != 1)  // waits for child process to complete
+               waitpid(pid, &status, WUNTRACED);
             //else run child process in background
          }
       }
