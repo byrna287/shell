@@ -5,6 +5,7 @@
 int find_index(char *command, char *intern_com[], int size_intc);
 int redir_io(char **tokens, char *io_dir);
 int bg_exec(char **tokens);
+void set_shell_env(void);
 // internal command functions:
 void clear(char **tokens);
 void quit(char **tokens);

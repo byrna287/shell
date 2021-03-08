@@ -40,6 +40,42 @@ int bg_exec(char **tokens)
    return -1;
 }
 
+void set_shell_env(void)
+{
+   char *curr = malloc(sizeof(char) * 200);
+   char *myshell = malloc(sizeof(char) * 200);
+   char *mysh_env = malloc(strlen("SHELL=") + sizeof(char) * 201);
+
+   getcwd(curr, 200);
+   if (access("myshell", F_OK) == 0)  // if executable is in directory
+   {
+      getcwd(myshell, 200);
+   }
+   else if (access("../bin/myshell", F_OK) == 0)  // if executable is in parent then bin directory
+   {
+      chdir("../bin/");
+      getcwd(myshell, 200);
+      chdir(curr);
+   }
+   else if (access("bin/myshell", F_OK) == 0)  // if executable is in bin directory
+   {
+      chdir("bin/");
+      getcwd(myshell, 200);
+      chdir(curr);
+   }
+   else  // if can't find executable
+   {
+      printf("couldn't set shell environment variable\n");
+   }
+
+   strcat(myshell, "/myshell");  // build environmnet variable string
+   strcpy(mysh_env, "SHELL=");
+   strcat(mysh_env, myshell);
+   putenv(mysh_env);
+   free(myshell);
+   free(curr);
+}
+
 // internal command functions:
 
 void clear(char **tokens)
@@ -79,11 +115,15 @@ void change_dir(char **tokens)
    {
       printf("%s\n", getcwd(buf, 100));
    }
+   else if (access(tokens[1], F_OK) != 0)
+   {
+      printf("error: this directory does not exist\n");
+   }
    else
    {
       chdir(tokens[1]);
       getcwd(buf, 100);
-      char *e_var = malloc(strlen("PWD=") + 101);
+      char *e_var = malloc(strlen("PWD=") + sizeof(char) * 101);
       strcpy(e_var, "PWD=");
       strcat(e_var, buf);
       putenv(e_var);

@@ -1,3 +1,8 @@
+// reference: got help from the labs @ ca216.computing.dcu.ie
+
+// still need to bg execution for internal commands?, comments, explain functions, 
+// make sure online stuff referenced, user manual, makefile, required docs present
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,11 +12,12 @@
 
 #define MAX_BUFFER 1024            // max line length that can be read
 #define MAX_ARGS 64                // max number of arguments i.e. words in input
-#define SEP " \t\n"                // what to split on
+#define SEP " \t\n"                // split input on whitespace
 
 int find_index(char *command, char *intern_com[], int size_intc);
 int redir_io(char **tokens, char *io_dir);
 int bg_exec(char **tokens);
+void set_shell_env(void);
 // internal command functions:
 void clear(char **tokens);
 void quit(char **tokens);
@@ -29,22 +35,22 @@ int main(int argc, char *argv[])
    for (int i = 0; i < MAX_ARGS; ++i)                   // initialise array to null
       tokens[i] = NULL;
 
+   set_shell_env();                                     // set path of the shell executable as environment variable
    char *dir_prompt = malloc(sizeof(char) * 100);       // get current directory to use as prompt
    getcwd(dir_prompt, 100);
    strcat(dir_prompt, " >> ");
 
-   char *intern_com[] = {"clr", "quit", "cd", "echo", "pause", "help", "dir", "environ"};                        // array of internal command strings
-   void (*functions[])(char **tokens) = {clear, quit, change_dir, echo, pause_enter, help, dir, envir};      // array of functions to complete internal commands
-   int size_intc = sizeof(intern_com) / sizeof(intern_com[0]);        // size of array of internal commands
+   char *intern_com[] = {"clr", "quit", "cd", "echo", "pause", "help", "dir", "environ"};                 // array of internal command strings
+   void (*functions[])(char **tokens) = {clear, quit, change_dir, echo, pause_enter, help, dir, envir};   // array of functions to complete internal commands
+   int size_intc = sizeof(intern_com) / sizeof(intern_com[0]);   // size of array of internal commands
 
    pid_t pid;
    int status;
 
-   // if a file is given as command line argument, read commands from there instead
-   if (argc == 2)
+   if (argc == 2)                        // if a file is given as command line argument, read commands from there instead
    {
-      if (access(argv[1], F_OK) == 0)
-         freopen(argv[1], "r", stdin);
+      if (access(argv[1], F_OK) == 0)    // if the file exists
+         freopen(argv[1], "r", stdin);   // open the file for reading
    }
 
    while (!feof(stdin))
@@ -62,26 +68,25 @@ int main(int argc, char *argv[])
          ++i;
       }
 
-      // if only enter is pressed (blank line) go to next line (back to top of while loop)
-      if (tokens[0] == NULL)
+      if (tokens[0] == NULL)   // if only enter is pressed (blank line) read next line of input
          continue;
 
-      // check if the input is an internal command and find the function's index if it is
-      int ind_f = find_index(tokens[0], intern_com, size_intc);
+      // check if input is an internal command, find the function's index if it is
+      int func_ind = find_index(tokens[0], intern_com, size_intc);
 
       // internal command: pass to array of functions
-      if (ind_f != -1)
-         (*functions[ind_f])(tokens);
+      if (func_ind != -1)
+         (*functions[func_ind])(tokens);
       // external command: fork and use exec to complete
       else
       {
+         // check if command to be executed in background or foreground
          int bg;
-         if (bg_exec(tokens) == -1)  // check for &
+         if (bg_exec(tokens) == -1)
             bg = 0; // no & so exec in fg (wait)
          else
             bg = 1; // & so exec in bg
 
-         // got help for these from labs @ ca216.computing.dcu.ie
          pid = fork();
 
          if (pid == -1)  // fork failed
@@ -94,16 +99,14 @@ int main(int argc, char *argv[])
             // check if input is being redirected
             int input = redir_io(tokens, "<");
             if (input != -1)
-            {
                if (access(tokens[input], F_OK) == 0)   // if the file exists
                   freopen(tokens[input], "r", stdin);  // open file for reading
-            }
+            
             // check if output is being redirected
             int output = redir_io(tokens, ">");
             if (output != -1)
-            {
                freopen(tokens[output], "w", stdout);  // open file for writing
-            }
+
             // check if output is being redirected and appended
             int app_output = redir_io(tokens, ">>");
             if (app_output != -1)
@@ -146,7 +149,7 @@ int main(int argc, char *argv[])
 
    }
 
-   // free memory dynamically allocated
+   // free memory allocated
    free(buf);
    free(tokens);
    free(dir_prompt);
