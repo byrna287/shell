@@ -1,6 +1,60 @@
-this
-is
-the
-manual
-file
+MYSHELL USER MANUAL
+
+INTERNAL COMMANDS
+   
+   To execute these commands, type them into the shell and press enter.
+   In this manual, arguments inside [] are optional, e.g. [optional_arg].
+
+Command:
+   cd [directory_name]
+Use:
+   Changes the current directory to the directory given as argument.
+   If no argument given, prints the current directory.
+
+Command:
+   clr
+Use:
+   Clears the shell screen.
+
+Command:
+   dir [directory_name]
+Use:
+   Lists the contents of the directory given as argument.
+   If no argument given, lists the contents of current directory.
+
+   Output is a detailed description of files and directories in the directory, including hidden files.
+
+Command:
+   environ
+Use:
+   Lists all environment variables.
+
+Command:
+   echo [arguments ...]
+Use:
+   Prints all arguments to a new line, followed by a new line.
+   Can enter any amount of arguments.
+   If no arguments given, prints a new line.
+
+Command:
+   help
+Use:
+   Prints the user manual.
+   Displays contents one screen at a time, press enter to scroll.
+
+Command:
+   pause
+Use:
+   Pauses the shell, resumes when enter is pressed.
+   Ignores all other input.
+
+Command:
+   quit
+Use:
+   Exits the shell.
+
+
+
+
+
 

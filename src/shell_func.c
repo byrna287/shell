@@ -9,6 +9,11 @@
 *  functions used in myshell.c
 */
 
+/*
+* params: char*, char*[], int
+* description: checks if the string passed is inside the array passed. Returns the
+* index of the string if it is present and -1 if it is not.
+*/
 int find_index(char *command, char *intern_com[], int size_intc)
 {
    for (int i = 0; i < size_intc; ++i)
@@ -19,6 +24,12 @@ int find_index(char *command, char *intern_com[], int size_intc)
    return -1;
 }
 
+/*
+* params: char**, char*
+* description: checks if the string passed is in the array passed. In myshell we are 
+* checking if the redirection arguments are present (<, >, >>). If they are present it
+* returns the index of the file to be redirected to, if not present returns -1.
+*/
 int redir_io(char **tokens, char *io_dir)
 {
    for (int i = 0; tokens[i] != NULL; ++i)
@@ -29,6 +40,11 @@ int redir_io(char **tokens, char *io_dir)
    return -1;
 }
 
+/*
+* params: char**
+* description: checks if the argument for background execution is present (&). If it is
+* present, points that char* at null ands returns 1, if not present returns -1.
+*/
 int bg_exec(char **tokens)
 {
    for (int i = 0; tokens[i] != NULL; ++i)
@@ -40,6 +56,11 @@ int bg_exec(char **tokens)
    return -1;  // exec in fg
 }
 
+/*
+* params: void
+* description: sets the shell environment variable to the full path of the shell executable.
+* Has to find the shell executable first, could be started in any directory within 2021-ca216-myshell.
+*/
 void set_shell_env(void)
 {
    char *curr = malloc(sizeof(char) * 200);
@@ -79,6 +100,10 @@ void set_shell_env(void)
 
 // internal command functions:
 
+/*
+* params: char**
+* description: clears the shell screen. Forks and uses exec to execute the clear command.
+*/
 void clear(char **tokens)
 {
    pid_t pid;
@@ -104,11 +129,20 @@ void clear(char **tokens)
    }
 }
 
+/*
+* params: char**
+* description: exits the shell.
+*/
 void quit(char **tokens)
 {
    exit(0);
 }
 
+/*
+* params: char**
+* description: changes the current directory. Also sets pwd environment variable to the
+* directory changed into.
+*/
 void change_dir(char **tokens)
 {
    char *buf = malloc(sizeof(char) * 100);
@@ -132,6 +166,11 @@ void change_dir(char **tokens)
    free(buf);
 }
 
+/*
+* params: char**
+* description: prints all elements of the array except the first to a new line, followed
+* by a new line. Checks for output redirection.
+*/
 void echo(char **tokens)
 {
    // check if output is being redirected
@@ -162,14 +201,25 @@ void echo(char **tokens)
       freopen("/dev/tty", "w", stdout);   // resume stdout (from stack overflow)
 }
 
+/*
+* params: char**
+* description: pauses the shell until enter is pressed. To ignore other input keeps reading in
+* input until enter is pressed but then does nothing with that input.
+*/
 void pause_enter(char **tokens)
 {
    char *buf = malloc(sizeof(char) * 1024); // buffer for input the user might enter
    printf("Press Enter to continue...\n");
-   fgets(buf, 1024, stdin);                 // pressing enter ends the reading of input, do nothing with it
+   fgets(buf, 1024, stdin);                 // pressing enter ends the reading of input
    free(buf);
 }
 
+/*
+* params: char**
+* description: prints the user manual. Has to find manual file, could be called from any directory
+* within 2021-ca216-myshell. Forks and uses exec to display the output with the more unix utility.
+* Checks for output redirection.
+*/
 void help(char **tokens)
 {
    pid_t pid;
@@ -219,6 +269,11 @@ void help(char **tokens)
    }
 }
 
+/*
+* params: char**
+* description: lists the contents of the directory given or the current directory if none
+* given. Forks and uses exec to execute the "ls -al" command. Checks for output redirection.
+*/
 void dir(char **tokens)
 {
    pid_t pid;
@@ -258,6 +313,10 @@ void dir(char **tokens)
    }
 }
 
+/*
+* params: char**
+* description: prints the environment variables. Checks for output redirection.
+*/
 void envir(char **tokens)
 {
    extern char **environ;
