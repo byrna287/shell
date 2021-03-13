@@ -5,56 +5,110 @@ INTERNAL COMMANDS
    To execute these commands, type them into the shell and press enter.
    In this manual, arguments inside [] are optional, e.g. [optional_arg].
 
-Command:
-   cd [directory_name]
-Use:
-   Changes the current directory to the directory given as argument.
-   If no argument given, prints the current directory.
+   Command:
+      cd [directory_name]
+   Use:
+      Changes the current directory to the directory given as argument.
+      If no argument given, prints the current directory.
 
-Command:
-   clr
-Use:
-   Clears the shell screen.
+   Command:
+      clr
+   Use:
+      Clears the shell screen.
 
-Command:
-   dir [directory_name]
-Use:
-   Lists the contents of the directory given as argument.
-   If no argument given, lists the contents of current directory.
+   Command:
+      dir [directory_name]
+   Use:
+      Lists the contents of the directory given as argument.
+      If no argument given, lists the contents of current directory.
 
-   Output is a detailed description of files and directories in the directory, including hidden files.
+      Output is a detailed description of files and directories in the directory, including hidden files.
 
-Command:
-   environ
-Use:
-   Lists all environment variables.
+   Command:
+      environ
+   Use:
+      Lists all environment variables.
 
-Command:
-   echo [arguments ...]
-Use:
-   Prints all arguments to a new line, followed by a new line.
-   Can enter any amount of arguments.
-   If no arguments given, prints a new line.
+   Command:
+      echo [arguments ...]
+   Use:
+      Prints all arguments to a new line, followed by a new line.
+      Can enter any amount of arguments.
+      If no arguments given, prints a new line.
 
-Command:
-   help
-Use:
-   Prints the user manual.
-   Displays contents one screen at a time, press enter to scroll.
+   Command:
+      help
+   Use:
+      Prints the user manual.
+      Displays contents one screen at a time, press enter to scroll.
 
-Command:
-   pause
-Use:
-   Pauses the shell, resumes when enter is pressed.
-   Ignores all other input.
+   Command:
+      pause
+   Use:
+      Pauses the shell, resumes when enter is pressed.
+      Ignores all other input.
 
-Command:
-   quit
-Use:
-   Exits the shell.
-
-
+   Command:
+      quit
+   Use:
+      Exits the shell.
 
 
+DESCRIPTION OF ENIVIRONMENT CONCEPTS
+
+   to do
+
+I/O REDIRECTION
+
+   Input/output redirection can be done using these symbols: <, >, >>.
+
+   - For input redirection: <.
+   This takes input from a file instead of from the shell command line. To redirect input the file must exist.
+   Use:
+      program_name < file_name
+
+   - For output redirection: > or >>
+   This sends output to a file instead of printing it on the shell command line. If the file does not exist, the file will be created.
+
+   > (overwrite)
+   If the file is not empty, this output redirection will overwrite the contents.
+   Use:
+      program_name > file_name
+
+   >> (append)
+   If the file is not empty, this output redirection will append the output to the contents of the file.
+   Use:
+      program_name >> file_name
+
+   I/O redirection in this shell is done using the freopen() function. It is used to redirect the standard I/O streams (stdin and stdout) to streams of your choosing.
+   Syntax - FILE *freopen( const char * restrict name, const char * restrict mode, FILE * restrict fp );
+   It works by closing the file specified as the last argument and replacing it with the file specified as the first argument. [1]
+
+PROCESS CONCEPT
+
+   A process is a program that is currently being executed. They are allocated resources at run time. The operating system runs its own processes to execute system code and users can run processes to execute user code.
+
+   A process consists of:
+   • the text section, which is the code written,
+   • the data section, made up of global variables,
+   • memory allocated, which is made up of the stack, to store temporary data, and the heap, which is memory that is dynamically allocated by the program and
+   • the current activity, shown by the program counter.
+
+   While a process is executing it can be in 1 of 5 states. Those states are:
+   • new - creation of process,
+   • running - process is executing,
+   • waiting - waiting for something to happen e.g. I/O completion,
+   • ready - waiting for a processor and
+   • terminated - finished running.[2]
+
+   Only one process can be executed by each core at a time. If there is more than one core in a system, multiple processes can be executed at the same time. There is a CPU per core and each CPU can have one running process at a time. The Operating System uses scheduling to switch the processes quickly to ensure there's not much wait time.
 
 
+
+
+BACKGROUND AND FOREGROUND EXECUTION
+
+
+References:
+[1] C in a Nutshell by Peter Prinz; Tony Crawford, II Standard Library, freopen
+[2] Operating System Concepts, 7th Edition by Peter Baer Galvin; Abraham Silberschatz; Greg Gagne, Chapter 3. Processes

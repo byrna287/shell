@@ -1,7 +1,6 @@
 // reference: got help from the labs @ ca216.computing.dcu.ie
 
-// still need to bg execution for internal commands?, explain functions, 
-// make sure online stuff referenced, user manual, makefile, required docs present
+// still need to: bg execution for internal commands?, make sure online stuff referenced, user manual, makefile, required docs present
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,11 +50,13 @@ int main(int argc, char *argv[])
    {
       if (access(argv[1], F_OK) == 0)    // if the file exists
          freopen(argv[1], "r", stdin);   // open the file for reading
+      else
+         printf("error: file not found.\n");
    }
 
    while (!feof(stdin))
    {
-      if (argc < 2)                         // if not reading commands from a file
+      if (argc < 2)  // if not reading commands from a file
          fputs(dir_prompt, stdout);         // print prompt
       fgets(buf, MAX_BUFFER, stdin);        // read input
 
@@ -95,8 +96,12 @@ int main(int argc, char *argv[])
             // check if input is being redirected
             int input = redir_io(tokens, "<");
             if (input != -1)
+            {
                if (access(tokens[input], F_OK) == 0)   // if the file exists
                   freopen(tokens[input], "r", stdin);  // open file for reading
+               else
+                  printf("error: file not found.\n");
+            }
             
             // check if output is being redirected
             int output = redir_io(tokens, ">");

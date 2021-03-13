@@ -5,9 +5,6 @@
 
 int main(int argc, char *argv[])
 {
-   if (access("src", F_OK) == 0)
-   {
-      printf("exists\n");
-   }
+   printf("This is test\n");
    return 0;
 }
