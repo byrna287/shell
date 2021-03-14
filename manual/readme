@@ -53,10 +53,17 @@ INTERNAL COMMANDS
    Use:
       Exits the shell.
 
+ENIVIRONMENT CONCEPTS
 
-DESCRIPTION OF ENIVIRONMENT CONCEPTS
+   The shell environment contains environment variables that can affect running processes. Child processes inherit the environment variables from their parent process. They contain system settings and variables that can be used by the parent process and all its children. [4]
 
-   to do
+   They have the syntax "VARIABLE=value", where the variable is in all upper case letters. An example of an environment variable which is regularly used is HOME which has the value of the full path of the user's home directory.
+
+   Some environment variables change as needed as the user navigates the system. The PWD environment variable changes as the user changes directory so that it always contains the full path of the current working directory.
+
+   When this shell executes, the SHELL environment variable is set to the full path of the shell executable. The PWD environment variable also changes as the user moves between directories.
+
+   The environment variables can be viewed by using the "environ" command.
 
 I/O REDIRECTION
 
@@ -101,14 +108,29 @@ PROCESS CONCEPT
    • ready - waiting for a processor and
    • terminated - finished running.[2]
 
-   Only one process can be executed by each core at a time. If there is more than one core in a system, multiple processes can be executed at the same time. There is a CPU per core and each CPU can have one running process at a time. The Operating System uses scheduling to switch the processes quickly to ensure there's not much wait time.
-
-
-
+   For each core, only one process can be executed at a time. If there is more than one core in a system, multiple processes can be executed at the same time. There is a CPU per core and each CPU can have one running process at a time. The Operating System uses scheduling to switch the processes quickly to ensure there's not much wait time between processes.
 
 BACKGROUND AND FOREGROUND EXECUTION
+
+   Background execution can be done in the shell using this symbol: &.
+   Use:
+      program_name &
+
+   This symbol must be used at the end of the command. For example: program_name arg1 arg2 < input_file &.
+
+   A job (program) running in the background allows the user to keep control of the shell while it's running. The shell will print the prompt immediately and wait for new commands. This gives the ability to continue typing new commands while the job continues running in the background.
+
+   Background execution would be most useful for jobs that take a long time to execute. If the job running in the background uses standard input or output it would be best to use file redirection, otherwise it will either pause to wait for user input or print output haphazardly to the shell screen. [3]
+
+   Foreground execution doesn't require a symbol. Typing the command into the shell as normal will run the command in the foreground.
+   Use:
+      program_name
+
+   Running commands in the foreground means the shell will wait until the command has finished executing before returning control of the shell to the user. Once the command is done, the shell will print the prompt and wait for a new command.
 
 
 References:
 [1] C in a Nutshell by Peter Prinz; Tony Crawford, II Standard Library, freopen
 [2] Operating System Concepts, 7th Edition by Peter Baer Galvin; Abraham Silberschatz; Greg Gagne, Chapter 3. Processes
+[3] Learning the bash Shell, 2nd Edition by Bill Rosenblatt; Cameron Newham, Background Jobs
+[4] Secure Programming Cookbook for C and C++ by Matt Messier; John Viega, 3.6. Using Environment Variables Securely

@@ -58,7 +58,7 @@ int bg_exec(char **tokens)
 
 /*
 * params: void
-* description: sets the shell environment variable to the full path of the shell executable.
+* description: sets the SHELL environment variable to the full path of the shell executable.
 * Has to find the shell executable first, could be started in any directory within 2021-ca216-myshell.
 */
 void set_shell_env(void)
