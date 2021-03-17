@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "shell_func.h"
 
@@ -64,24 +65,24 @@ int bg_exec(char **tokens)
 void set_shell_env(void)
 {
    char *curr = malloc(sizeof(char) * 200);
-   char *mysh_path = malloc(sizeof(char) * 215);
-   char *mysh_env = malloc(strlen("SHELL=") + sizeof(char) * 215);
+   char *mysh_path = malloc(sizeof(char) * 256);
+   char *mysh_env = malloc(strlen("SHELL=") + sizeof(char) * 257);
 
    getcwd(curr, 200);                 // get current directory
    if (access("myshell", F_OK) == 0)  // if executable is in current directory
    {
-      getcwd(mysh_path, 215);         // get full path of myshell executable
+      getcwd(mysh_path, 256);         // get full path of myshell executable
    }
    else if (access("../bin/myshell", F_OK) == 0)  // if executable is in parent then bin directory
    {
       chdir("../bin/");         // change to directory with myshell
-      getcwd(mysh_path, 215);
+      getcwd(mysh_path, 256);
       chdir(curr);              // change back to original directory
    }
    else if (access("bin/myshell", F_OK) == 0)  // if executable is in bin directory
    {
       chdir("bin/");
-      getcwd(mysh_path, 215);
+      getcwd(mysh_path, 256);
       chdir(curr);
    }
    else  // if can't find executable
@@ -145,20 +146,26 @@ void quit(char **tokens)
 */
 void change_dir(char **tokens)
 {
-   char *buf = malloc(sizeof(char) * 100);
-   if (tokens[1] == NULL)   // if no argument given print current directory
+   char *buf = malloc(sizeof(char) * 256);
+   struct stat filestats;        // variable for file stats
+   stat(tokens[1], &filestats);  // get file stats
+   if (tokens[1] == NULL)        // if no argument given print current directory
    {
-      printf("%s\n", getcwd(buf, 100));
+      printf("%s\n", getcwd(buf, 256));
    }
    else if (access(tokens[1], F_OK) != 0)  // if directory doesn't exist print error message
    {
-      printf("error: this directory does not exist\n");
+      printf("error: does not exist\n");
+   }
+   else if (S_ISDIR(filestats.st_mode) == 0)  // check file is not a directory
+   {
+      printf("error: not a directory\n");
    }
    else
    {
       chdir(tokens[1]);  // change directory to argument given
-      getcwd(buf, 100);
-      char *e_var = malloc(strlen("PWD=") + sizeof(char) * 101);
+      getcwd(buf, 256);
+      char *e_var = malloc(strlen("PWD=") + sizeof(char) * 257);
       strcpy(e_var, "PWD=");
       strcat(e_var, buf);
       putenv(e_var);     // set pwd environment variable
@@ -337,3 +344,52 @@ void envir(char **tokens)
    if (output != -1 || app_output != -1)
       freopen("/dev/tty", "w", stdout);   // resume stdout (from stack overflow)
 }
+
+/*
+* params: char**
+* description: copies contents of a file to another file. If file to copy into is
+* a directory, copies file into directory with name of file being copied.
+* Got help from stack overflow on how to check if a file is a directory.
+*/
+void copy(char **tokens)
+{
+   int MAX_BUFFER = 1024;                          // max line size to be read
+   char *buf = malloc(sizeof(char) * MAX_BUFFER);  // to store lines from file being read
+
+   if (access(tokens[1], F_OK) == 0)               // if the file to be copied exists
+   {
+      struct stat filestats;                       // variable to hold the stats of a file
+      
+      stat(tokens[1], &filestats);                 // get the stats of a file
+      if (S_ISDIR(filestats.st_mode) == 0)         // check file not a directory, returns 0 if not
+      {
+         stat(tokens[2], &filestats);
+         if (S_ISDIR(filestats.st_mode) != 0)      // check file is a directory
+         {
+            strcat(tokens[2], "/");
+            strcat(tokens[2], tokens[1]);          // change file name to copy into directory
+         }
+         
+         FILE *fp = fopen(tokens[1], "r");         // open file for reading
+         FILE *outfp = fopen(tokens[2], "w");      // open file for writing
+         while (!feof(fp))
+         {
+            fgets(buf, MAX_BUFFER, fp);            // read line from file to be copied
+            fprintf(outfp, "%s", buf);             // print line to file copying into
+
+         }
+         fclose(fp);                               // close files
+         fclose(outfp);
+      }
+      else
+      {
+         printf("error: can't copy a directory\n");  // error message if file to be copied is a directory
+      }
+   }
+   else
+   {
+      printf("error: file does not exist\n");        // error message if file to be copied does not exist
+   }
+   free(buf);
+}
+

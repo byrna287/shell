@@ -5,53 +5,71 @@ INTERNAL COMMANDS
    To execute these commands, type them into the shell and press enter.
    In this manual, arguments inside [] are optional, e.g. [optional_arg].
 
-   Command:
-      cd [directory_name]
+   Command: cd
    Use:
+      cd [directory_name]
+      
       Changes the current directory to the directory given as argument.
       If no argument given, prints the current directory.
 
-   Command:
-      clr
+   Command: clr
    Use:
+      clr
+
       Clears the shell screen.
 
-   Command:
-      dir [directory_name]
+   Command: dir
    Use:
+      dir [directory_name]
+
       Lists the contents of the directory given as argument.
       If no argument given, lists the contents of current directory.
 
       Output is a detailed description of files and directories in the directory, including hidden files.
 
-   Command:
-      environ
+   Command: environ
    Use:
+      environ
+
       Lists all environment variables.
 
-   Command:
-      echo [arguments ...]
+   Command: echo
    Use:
+      echo [arguments ...]
+
       Prints all arguments to a new line, followed by a new line.
       Can enter any amount of arguments.
       If no arguments given, prints a new line.
 
-   Command:
-      help
+   Command: help
    Use:
+      help
+
       Prints the user manual.
       Displays contents one screen at a time, press enter to scroll.
 
-   Command:
-      pause
+   Command: pause
    Use:
+      pause
+
       Pauses the shell, resumes when enter is pressed.
       Ignores all other input.
 
-   Command:
-      quit
+   Command: quit
    Use:
+      quit
+
       Exits the shell.
+
+   Command: copy
+   Use:
+      copy file_name target_file_name
+      OR
+      copy file_name target_directory_name
+
+      First file (file to be copied) must exist. Second file (file copying into) does not need to exist. If second file does exist it will be overwritten.
+
+      If target is a file, copies contents of first file into target file. If target is a directory, copies contents of first file into a file in that directory. File has name of first file.
 
 ENIVIRONMENT CONCEPTS
 

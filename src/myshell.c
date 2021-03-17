@@ -1,11 +1,12 @@
 // reference: got help from the labs @ ca216.computing.dcu.ie
 
-// still need to: bg execution for internal commands?, make sure online stuff referenced, user manual, makefile, required docs present
+// still need to: bg execution for internal commands?, make sure online stuff referenced, makefile, required docs present/everything named correctly
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "shell_func.h"
 
@@ -26,6 +27,7 @@ void pause_enter(char **tokens);      // pause the shell until enter is pressed
 void help(char **tokens);             // display the user manual
 void dir(char **tokens);              // list contents of directory
 void envir(char **tokens);            // print the environment variables
+void copy(char **tokens);             // copy contents of a file
 
 int main(int argc, char *argv[])
 {
@@ -34,13 +36,13 @@ int main(int argc, char *argv[])
    for (int i = 0; i < MAX_ARGS; ++i)                   // initialise array to null
       tokens[i] = NULL;
 
-   set_shell_env();                                     // set path of the shell executable as environment variable
+   set_shell_env();                                     // set path of the shell executable as shell environment variable
    char *dir_prompt = malloc(sizeof(char) * 100);       // get current directory to use as prompt
    getcwd(dir_prompt, 100);
    strcat(dir_prompt, " >> ");
 
-   char *intern_com[] = {"clr", "quit", "cd", "echo", "pause", "help", "dir", "environ"};                 // array of internal command strings
-   void (*functions[])(char **tokens) = {clear, quit, change_dir, echo, pause_enter, help, dir, envir};   // array of functions to complete internal commands
+   char *intern_com[] = {"clr", "quit", "cd", "echo", "pause", "help", "dir", "environ", "copy"};               // array of internal command strings
+   void (*functions[])(char **tokens) = {clear, quit, change_dir, echo, pause_enter, help, dir, envir, copy};   // array of functions to complete internal commands
    int size_intc = sizeof(intern_com) / sizeof(intern_com[0]);   // size of array of internal commands
 
    pid_t pid;

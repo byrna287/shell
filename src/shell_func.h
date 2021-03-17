@@ -15,3 +15,4 @@ void pause_enter(char **tokens);
 void help(char **tokens);
 void dir(char **tokens);
 void envir(char **tokens);
+void copy(char **tokens);
