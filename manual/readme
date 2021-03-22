@@ -1,9 +1,9 @@
 MYSHELL USER MANUAL
 
-INTERNAL COMMANDS
-   
-   To execute these commands, type them into the shell and press enter.
+   To execute commands in this shell, type the command at the shell prompt and press enter.
    In this manual, arguments inside [] are optional, e.g. [optional_arg].
+
+INTERNAL COMMANDS
 
    Command: cd
    Use:
@@ -46,7 +46,8 @@ INTERNAL COMMANDS
       help
 
       Prints the user manual.
-      Displays contents one screen at a time, press enter to scroll.
+      Displays contents one screen at a time. Press enter to scroll, press q to stop viewing and return to shell.
+      Cannot be called from directories above 2021-ca216-myshell.
 
    Command: pause
    Use:
@@ -63,31 +64,35 @@ INTERNAL COMMANDS
 
    Command: copy
    Use:
-      copy file_name target_file_name
+      copy source_file target_file
       OR
-      copy file_name target_directory_name
+      copy source_file target_directory
 
-      First file (file to be copied) must exist. Second file (file copying into) does not need to exist. If second file does exist it will be overwritten.
+      Copies contents of source_file into target_file. Source_file must exist. Target_file does not need to exist. If target_file does exist it will be overwritten.
 
-      If target is a file, copies contents of first file into target file. If target is a directory, copies contents of first file into a file in that directory. File has name of first file.
+      If target is a directory, copies contents of source_file into a file in that directory. File has name of source_file.
+
+      (Copy is the extra command.)
+
 
 ENIVIRONMENT CONCEPTS
 
-   The shell environment contains environment variables that can affect running processes. Child processes inherit the environment variables from their parent process. They contain system settings and variables that can be used by the parent process and all its children. [4]
+   The shell environment contains environment variables that can affect running processes. Child processes inherit the environment variables from their parent process. They contain system settings and variables that can be used by the parent process and all its children. [1]
 
    They have the syntax "VARIABLE=value", where the variable is in all upper case letters. An example of an environment variable which is regularly used is HOME which has the value of the full path of the user's home directory.
 
    Some environment variables change as needed as the user navigates the system. The PWD environment variable changes as the user changes directory so that it always contains the full path of the current working directory.
 
-   When this shell executes, the SHELL environment variable is set to the full path of the shell executable. The PWD environment variable also changes as the user moves between directories.
+   When myshell executes, the SHELL environment variable is set to the full path of the myshell executable. The PWD environment variable also changes as the user moves between directories.
 
    The environment variables can be viewed by using the "environ" command.
+
 
 I/O REDIRECTION
 
    Input/output redirection can be done using these symbols: <, >, >>.
 
-   - For input redirection: <.
+   - For input redirection: <
    This takes input from a file instead of from the shell command line. To redirect input the file must exist.
    Use:
       program_name < file_name
@@ -95,19 +100,20 @@ I/O REDIRECTION
    - For output redirection: > or >>
    This sends output to a file instead of printing it on the shell command line. If the file does not exist, the file will be created.
 
-   > (overwrite)
+   overwrite: >
    If the file is not empty, this output redirection will overwrite the contents.
    Use:
       program_name > file_name
 
-   >> (append)
+   append: >>
    If the file is not empty, this output redirection will append the output to the contents of the file.
    Use:
       program_name >> file_name
 
-   I/O redirection in this shell is done using the freopen() function. It is used to redirect the standard I/O streams (stdin and stdout) to streams of your choosing.
+   I/O redirection in myshell is done using the freopen() function. It is used to redirect the standard I/O streams (stdin and stdout) to streams of your choosing.
    Syntax - FILE *freopen( const char * restrict name, const char * restrict mode, FILE * restrict fp );
-   It works by closing the file specified as the last argument and replacing it with the file specified as the first argument. [1]
+   It works by closing the file specified as the last argument (fp) and replacing it with the file specified as the first argument (name). The second argument (mode) is how the file will be used: r for reading, w for writing and a for appending. [2]
+
 
 PROCESS CONCEPT
 
@@ -124,13 +130,17 @@ PROCESS CONCEPT
    • running - process is executing,
    • waiting - waiting for something to happen e.g. I/O completion,
    • ready - waiting for a processor and
-   • terminated - finished running.[2]
+   • terminated - finished running.[3]
+
+   Processes can create other processes. When one process creates another process, it is called the parent process and the new process that was created is called the child process. A parent process can make many child processes.
+
+   A child process is a copy of its parent process. While the child process is running, it can be told to do something different to the parent. In this shell the execvp() command is used in the child processes to execute external commands. If the parent process is told to wait, the child process finishes executing and then control returns to the parent. If it is not told to wait, both processes execute at the same time.
 
    For each core, only one process can be executed at a time. If there is more than one core in a system, multiple processes can be executed at the same time. There is a CPU per core and each CPU can have one running process at a time. The Operating System uses scheduling to switch the processes quickly to ensure there's not much wait time between processes.
 
 BACKGROUND AND FOREGROUND EXECUTION
 
-   Background execution can be done in the shell using this symbol: &.
+   Background execution can be done in myshell using this symbol: &.
    Use:
       program_name &
 
@@ -138,7 +148,7 @@ BACKGROUND AND FOREGROUND EXECUTION
 
    A job (program) running in the background allows the user to keep control of the shell while it's running. The shell will print the prompt immediately and wait for new commands. This gives the ability to continue typing new commands while the job continues running in the background.
 
-   Background execution would be most useful for jobs that take a long time to execute. If the job running in the background uses standard input or output it would be best to use file redirection, otherwise it will either pause to wait for user input or print output haphazardly to the shell screen. [3]
+   Background execution would be most useful for jobs that take a long time to execute. If the job running in the background uses standard input or output it would be best to use file redirection, otherwise it will either pause to wait for user input or print output haphazardly to the shell screen. [4]
 
    Foreground execution doesn't require a symbol. Typing the command into the shell as normal will run the command in the foreground.
    Use:
@@ -147,8 +157,19 @@ BACKGROUND AND FOREGROUND EXECUTION
    Running commands in the foreground means the shell will wait until the command has finished executing before returning control of the shell to the user. Once the command is done, the shell will print the prompt and wait for a new command.
 
 
+
+
 References:
-[1] C in a Nutshell by Peter Prinz; Tony Crawford, II Standard Library, freopen
-[2] Operating System Concepts, 7th Edition by Peter Baer Galvin; Abraham Silberschatz; Greg Gagne, Chapter 3. Processes
-[3] Learning the bash Shell, 2nd Edition by Bill Rosenblatt; Cameron Newham, Background Jobs
-[4] Secure Programming Cookbook for C and C++ by Matt Messier; John Viega, 3.6. Using Environment Variables Securely
+
+[1] Matt Messier and John Viega, "3.6. Using Environment Variables Securely" in Secure Programming Cookbook for C and C++, California, USA: O'Reilly Media, Inc., 2003.
+
+[2] Peter Prinz and Tony Crawford, "II Standard Library, freopen" in C in a Nutshell, California, USA: O'Reilly Media, Inc., 2005.
+
+[3] Peter Baer Galvin, Abraham Silberschatz and Greg Gagne, "Chapter 3. Processes" in Operating System Concepts, 7th ed. New Jersey, USA: Wiley, 2004.
+
+[4] Bill Rosenblatt and Cameron Newham, "Background Jobs" in Learning the bash Shell, 2nd ed. California, USA: O'Reilly Media, Inc., 1998.
+
+
+Ailbhe Byrne
+Student number: 19424402
+I acknowledge the DCU academic integrity policy.

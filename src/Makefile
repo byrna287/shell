@@ -1,9 +1,9 @@
-myshell: myshell.c shell_func.c shell_func.h
-	gcc -Wall myshell.c shell_func.c -o myshell
-	mv myshell ../bin/myshell
-	../bin/myshell
+# myshell
 
-test: test.c
-	gcc -o test test.c
-	mv test ../bin/test
-	../bin/test arg1 arg2
+# Ailbhe Byrne
+# Student number: 19424402
+# I acknowledge the DCU academic integrity policy.
+
+myshell: myshell.c
+	gcc -o myshell myshell.c shell_func.c 
+	mv myshell ../bin/myshell

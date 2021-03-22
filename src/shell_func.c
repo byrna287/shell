@@ -8,6 +8,10 @@
 
 /*
 *  functions used in myshell.c
+*
+*  Ailbhe Byrne
+*  Student number: 19424402
+*  I acknowledge the DCU academic integrity policy.
 */
 
 /*
@@ -64,11 +68,11 @@ int bg_exec(char **tokens)
 */
 void set_shell_env(void)
 {
-   char *curr = malloc(sizeof(char) * 200);
+   char *curr = malloc(sizeof(char) * 240);
    char *mysh_path = malloc(sizeof(char) * 256);
-   char *mysh_env = malloc(strlen("SHELL=") + sizeof(char) * 257);
+   char *mysh_env = malloc(strlen("SHELL=") + sizeof(char) * 266);
 
-   getcwd(curr, 200);                 // get current directory
+   getcwd(curr, 240);                 // get current directory
    if (access("myshell", F_OK) == 0)  // if executable is in current directory
    {
       getcwd(mysh_path, 256);         // get full path of myshell executable
@@ -103,6 +107,40 @@ void set_shell_env(void)
 
 /*
 * params: char**
+* description: changes the current directory. Also sets PWD environment variable to the
+* directory changed into.
+*/
+void change_dir(char **tokens)
+{
+   char *buf = malloc(sizeof(char) * 256);
+   struct stat filestats;        // variable for file stats
+   stat(tokens[1], &filestats);  // get file stats
+   if (tokens[1] == NULL)        // if no argument given print current directory
+   {
+      printf("%s\n", getcwd(buf, 256));
+   }
+   else if (access(tokens[1], F_OK) != 0)  // if directory doesn't exist print error message
+   {
+      printf("error: directory \"%s\" does not exist\n", tokens[1]);
+   }
+   else if (S_ISDIR(filestats.st_mode) == 0)  // check file is not a directory
+   {
+      printf("error: \"%s\" is not a directory\n", tokens[1]);
+   }
+   else
+   {
+      chdir(tokens[1]);  // change directory to argument given
+      getcwd(buf, 256);
+      char *e_var = malloc(strlen("PWD=") + sizeof(char) * 257);
+      strcpy(e_var, "PWD=");
+      strcat(e_var, buf);
+      putenv(e_var);     // set PWD environment variable
+   }
+   free(buf);
+}
+
+/*
+* params: char**
 * description: clears the shell screen. Forks and uses exec to execute the clear command.
 */
 void clear(char **tokens)
@@ -132,45 +170,81 @@ void clear(char **tokens)
 
 /*
 * params: char**
-* description: exits the shell.
+* description: lists the contents of the directory given or the current directory if none
+* given. Forks and uses exec to execute the "ls -al" command. Checks for output redirection.
 */
-void quit(char **tokens)
+void dir_list(char **tokens)
 {
-   exit(0);
+   pid_t pid;
+   int status;
+
+   pid = fork();
+   if (pid == -1)  // fork failed
+   {
+      printf("Fork failed: exiting.");
+      exit(1);
+   }
+   else if (pid == 0)  // fork succeeded, this is the child process
+   {
+      // check if output is being redirected
+      int output = redir_io(tokens, ">");
+      if (output != -1)
+         freopen(tokens[output], "w", stdout);  // open file for writing
+      
+      // check if output is being redirected and appended
+      int app_output = redir_io(tokens, ">>");
+      if (app_output != -1)
+         freopen(tokens[app_output], "a", stdout);  // open file for appending
+
+      // if has no directory argument
+      if (tokens[1] == NULL || strcmp(tokens[1], ">") == 0 || strcmp(tokens[1], ">>") == 0)
+      {
+         tokens[0] = "ls";
+         tokens[1] = "-al";
+         tokens[2] = NULL;
+      }
+      else
+      {
+         tokens[2] = tokens[1];  // make directory the third arg
+         tokens[0] = "ls";
+         tokens[1] = "-al";
+         tokens[3] = NULL;
+      }
+
+      int rcode = execvp(tokens[0], tokens);
+      if (rcode == -1)
+         printf("error: command failed");
+      _exit(3);  // exit child process if execvp fails
+   }
+   else  // this is the parent process
+   {
+      waitpid(pid, &status, WUNTRACED);  // waits for child process to complete
+   }
 }
 
 /*
 * params: char**
-* description: changes the current directory. Also sets pwd environment variable to the
-* directory changed into.
+* description: prints the environment variables. Checks for output redirection.
 */
-void change_dir(char **tokens)
+void envir(char **tokens)
 {
-   char *buf = malloc(sizeof(char) * 256);
-   struct stat filestats;        // variable for file stats
-   stat(tokens[1], &filestats);  // get file stats
-   if (tokens[1] == NULL)        // if no argument given print current directory
-   {
-      printf("%s\n", getcwd(buf, 256));
-   }
-   else if (access(tokens[1], F_OK) != 0)  // if directory doesn't exist print error message
-   {
-      printf("error: does not exist\n");
-   }
-   else if (S_ISDIR(filestats.st_mode) == 0)  // check file is not a directory
-   {
-      printf("error: not a directory\n");
-   }
-   else
-   {
-      chdir(tokens[1]);  // change directory to argument given
-      getcwd(buf, 256);
-      char *e_var = malloc(strlen("PWD=") + sizeof(char) * 257);
-      strcpy(e_var, "PWD=");
-      strcat(e_var, buf);
-      putenv(e_var);     // set pwd environment variable
-   }
-   free(buf);
+   extern char **environ;
+
+   // check if output is being redirected
+   int output = redir_io(tokens, ">");
+   if (output != -1)
+      freopen(tokens[output], "w", stdout);  // open file for writing
+      
+   // check if output is being redirected and appended
+   int app_output = redir_io(tokens, ">>");
+   if (app_output != -1)
+      freopen(tokens[app_output], "a", stdout);  // open file for appending
+
+   for (int i = 0; environ[i] != NULL; ++i)
+      printf("%s\n", environ[i]);
+
+   if (output != -1 || app_output != -1)
+      freopen("/dev/tty", "w", stdout);   // resume stdout (from stack overflow)
 }
 
 /*
@@ -206,19 +280,6 @@ void echo(char **tokens)
 
    if (output != -1 || app_output != -1)  // if there was output redirection
       freopen("/dev/tty", "w", stdout);   // resume stdout (from stack overflow)
-}
-
-/*
-* params: char**
-* description: pauses the shell until enter is pressed. To ignore other input keeps reading in
-* input until enter is pressed but then does nothing with that input.
-*/
-void pause_enter(char **tokens)
-{
-   char *buf = malloc(sizeof(char) * 1024); // buffer for input the user might enter
-   printf("Press Enter to continue...\n");
-   fgets(buf, 1024, stdin);                 // pressing enter ends the reading of input
-   free(buf);
 }
 
 /*
@@ -278,71 +339,24 @@ void help(char **tokens)
 
 /*
 * params: char**
-* description: lists the contents of the directory given or the current directory if none
-* given. Forks and uses exec to execute the "ls -al" command. Checks for output redirection.
+* description: pauses the shell until enter is pressed. To ignore other input keeps reading in
+* input until enter is pressed but then does nothing with that input.
 */
-void dir(char **tokens)
+void pause_enter(char **tokens)
 {
-   pid_t pid;
-   int status;
-
-   pid = fork();
-   if (pid == -1)  // fork failed
-   {
-      printf("Fork failed: exiting.");
-      exit(1);
-   }
-   else if (pid == 0)  // fork succeeded, this is the child process
-   {
-      // check if output is being redirected
-      int output = redir_io(tokens, ">");
-      if (output != -1)
-         freopen(tokens[output], "w", stdout);  // open file for writing
-      
-      // check if output is being redirected and appended
-      int app_output = redir_io(tokens, ">>");
-      if (app_output != -1)
-         freopen(tokens[app_output], "a", stdout);  // open file for appending
-
-      tokens[2] = tokens[1];  // make directory the third arg
-      tokens[0] = "ls";
-      tokens[1] = "-al";
-      tokens[3] = NULL;
-
-      int rcode = execvp(tokens[0], tokens);
-      if (rcode == -1)
-         printf("error: command failed");
-      _exit(3);  // exit child process if execvp fails
-   }
-   else  // this is the parent process
-   {
-      waitpid(pid, &status, WUNTRACED);  // waits for child process to complete
-   }
+   char *buf = malloc(sizeof(char) * 512); // buffer for input the user might enter
+   printf("Press Enter to continue...\n");
+   fgets(buf, 512, stdin);                 // pressing enter ends the reading of input
+   free(buf);
 }
 
 /*
 * params: char**
-* description: prints the environment variables. Checks for output redirection.
+* description: exits the shell.
 */
-void envir(char **tokens)
+void quit(char **tokens)
 {
-   extern char **environ;
-
-   // check if output is being redirected
-   int output = redir_io(tokens, ">");
-   if (output != -1)
-      freopen(tokens[output], "w", stdout);  // open file for writing
-      
-   // check if output is being redirected and appended
-   int app_output = redir_io(tokens, ">>");
-   if (app_output != -1)
-      freopen(tokens[app_output], "a", stdout);  // open file for appending
-
-   for (int i = 0; environ[i] != NULL; ++i)
-      printf("%s\n", environ[i]);
-
-   if (output != -1 || app_output != -1)
-      freopen("/dev/tty", "w", stdout);   // resume stdout (from stack overflow)
+   exit(0);
 }
 
 /*
@@ -383,13 +397,12 @@ void copy(char **tokens)
       }
       else
       {
-         printf("error: can't copy a directory\n");  // error message if file to be copied is a directory
+         printf("error: can't copy directory \"%s\"\n", tokens[1]);  // error message if file to be copied is a directory
       }
    }
    else
    {
-      printf("error: file does not exist\n");        // error message if file to be copied does not exist
+      printf("error: file \"%s\" does not exist\n", tokens[1]);        // error message if file to be copied does not exist
    }
    free(buf);
 }
-
